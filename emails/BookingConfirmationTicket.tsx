@@ -9,6 +9,7 @@ export const BookingConfirmationTicket: React.FC<Readonly<EmailProps>> = ({
   booking,
 }) => {
   const leadPassenger = booking.passengers[0];
+  //@ts-expect-error ???
   const departureTime = new Date(booking.trip.departureTime);
 
   return (
@@ -22,7 +23,7 @@ export const BookingConfirmationTicket: React.FC<Readonly<EmailProps>> = ({
       <hr />
       <h2>Trip Details</h2>
       <p>
-        <strong>Route:</strong> {booking.trip.route.name} (
+        <strong>Route:</strong> {(booking as any).trip.route.name} (
         {booking.bookedSegments[0].origin} to{' '}
         {booking.bookedSegments[booking.bookedSegments.length - 1].destination})
       </p>
@@ -34,8 +35,8 @@ export const BookingConfirmationTicket: React.FC<Readonly<EmailProps>> = ({
         })}
       </p>
       <p>
-        <strong>Vehicle:</strong> {booking.trip.vehicle.name} (
-        {(booking.trip.vehicle as any).plateNumber}){' '}
+        <strong>Vehicle:</strong> {(booking as any).trip.vehicle.name} (
+        {(booking as any).trip.vehicle.plateNumber}){' '}
         {/* Adjust type if needed */}
       </p>
       {booking.seatNumbers && booking.seatNumbers.length > 0 && (

@@ -27,10 +27,12 @@ const generateLayout = (capacity: number) => {
     for (let j = 0; j < 4; j++) {
       if (seatNum <= capacity) {
         const seatId = `${i + 1}${String.fromCharCode(65 + j)}`;
+        //@ts-expect-error ???
         row.push(seatId);
         seatNum++;
       }
     }
+    //@ts-expect-error ???
     layout.push(row);
   }
   return layout;

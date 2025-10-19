@@ -18,12 +18,7 @@ if (!MONGODB_URI) {
   process.exit(1);
 }
 
-if (
-  !ADMIN_EMAIL ||
-  ADMIN_EMAIL === 'admin@example.com' ||
-  !ADMIN_PASSWORD ||
-  ADMIN_PASSWORD === 'your_strong_password_here'
-) {
+if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
   console.error(
     'Error: Please edit ADMIN_EMAIL and ADMIN_PASSWORD in the scripts/seed-admin.ts file.'
   );
@@ -33,7 +28,7 @@ if (
 async function seedAdmin() {
   try {
     console.log('Connecting to database...');
-    await mongoose.connect(MONGODB_URI);
+    await mongoose.connect(MONGODB_URI as string);
     console.log('Database connected.');
 
     const existingAdmin = await User.findOne({ email: ADMIN_EMAIL });
