@@ -33,7 +33,7 @@ export interface IBooking extends Document {
 
   bookedAddOns: IBookedAddOn[];
   totalCost: number;
-  paymentStatus: 'pending' | 'paid' | 'failed';
+  paymentStatus: 'pending' | 'paid' | 'failed' | 'cancelled';
   paymentRef?: string;
   paymentMethod: 'paystack' | 'manual';
   markedAsPaidBy?: Schema.Types.ObjectId | IUser;
@@ -107,7 +107,7 @@ const BookingSchema = new Schema<IBooking>(
     },
     paymentStatus: {
       type: String,
-      enum: ['pending', 'paid', 'failed'],
+      enum: ['pending', 'paid', 'failed', 'cancelled'],
       default: 'pending',
     },
     paymentRef: {

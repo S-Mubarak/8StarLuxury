@@ -125,8 +125,8 @@ export default function BookingsPage() {
     if (!alertBookingId || !alertAction) return;
     const originalBooking = bookings.find((b) => b._id === alertBookingId);
     if (!originalBooking) return;
-    const originalStatus = originalBooking.paymentStatus;
-    const originalBookingUserFacingId = originalBooking.bookingId;
+    const originalStatus = originalBooking?.paymentStatus;
+    const originalBookingUserFacingId = originalBooking?.bookingId;
 
     try {
       const res = await fetch(`/api/bookings/${alertBookingId}`, {
@@ -256,33 +256,33 @@ export default function BookingsPage() {
               ) : (
                 bookings.map((booking) => (
                   <TableRow
-                    key={booking._id as string}
+                    key={booking?._id as string}
                     className="hover:bg-slate-50/50"
                   >
                     <TableCell className="font-mono text-xs text-slate-700">
-                      {booking.bookingId}
+                      {booking?.bookingId}
                     </TableCell>
                     <TableCell>
                       <div className="font-medium text-sm text-slate-900">
-                        {booking.passengers[0].firstName}
-                        {booking.passengers[0].lastName}
-                        {booking.passengers.length > 1 && (
+                        {booking?.passengers[0].firstName}
+                        {booking?.passengers[0].lastName}
+                        {booking?.passengers.length > 1 && (
                           <span className="text-slate-500 text-xs ml-1">
-                            (+{booking.passengers.length - 1})
+                            (+{booking?.passengers.length - 1})
                           </span>
                         )}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {booking.passengers[0].email}
+                        {booking?.passengers[0].email}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="font-medium text-sm text-slate-900">
-                        {booking.trip.route.name}
+                        {booking?.trip?.route?.name}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {format(
-                          new Date(booking.trip.departureTime),
+                          new Date(booking?.trip?.departureTime),
                           'MMM d, yyyy h:mm a'
                         )}
                       </div>
@@ -290,14 +290,14 @@ export default function BookingsPage() {
                     <TableCell>
                       <Badge
                         //@ts-expect-error ???
-                        variant={getStatusVariant(booking.paymentStatus)}
+                        variant={getStatusVariant(booking?.paymentStatus)}
                         className="capitalize text-xs font-normal"
                       >
-                        {booking.paymentStatus}
+                        {booking?.paymentStatus}
                       </Badge>
                     </TableCell>
                     <TableCell className="font-medium text-sm">
-                      ₦{booking.totalCost.toLocaleString()}
+                      ₦{booking?.totalCost.toLocaleString()}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
@@ -315,13 +315,13 @@ export default function BookingsPage() {
                           >
                             View Details
                           </DropdownMenuItem>
-                          {booking.paymentStatus === 'pending' && (
+                          {booking?.paymentStatus === 'pending' && (
                             <>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 className="text-green-600 focus:text-green-700"
                                 onClick={() =>
-                                  openAlert(booking._id as string, 'paid')
+                                  openAlert(booking?._id as string, 'paid')
                                 }
                               >
                                 Mark as Paid
@@ -329,25 +329,19 @@ export default function BookingsPage() {
                             </>
                           )}
 
-                          {
-                            //@ts-expect-error ???
-                            booking.paymentStatus !== 'cancelled' && (
-                              <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  className="text-red-600 focus:text-red-700"
-                                  onClick={() =>
-                                    openAlert(
-                                      booking._id as string,
-                                      'cancelled'
-                                    )
-                                  }
-                                >
-                                  Cancel Booking
-                                </DropdownMenuItem>
-                              </>
-                            )
-                          }
+                          {booking?.paymentStatus !== 'cancelled' && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-red-600 focus:text-red-700"
+                                onClick={() =>
+                                  openAlert(booking?._id as string, 'cancelled')
+                                }
+                              >
+                                Cancel Booking
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -421,22 +415,23 @@ export default function BookingsPage() {
 
             {detailBooking && (
               <div className="flex items-center mt-1">
-                {getStatusIcon(detailBooking.paymentStatus)}
+                {getStatusIcon(detailBooking?.paymentStatus)}
                 <span
                   className={`text-sm font-medium capitalize ${
-                    detailBooking.paymentStatus === 'paid'
+                    detailBooking?.paymentStatus === 'paid'
                       ? 'text-green-700'
-                      : detailBooking.paymentStatus === 'pending'
+                      : detailBooking?.paymentStatus === 'pending'
                         ? 'text-yellow-700'
-                        : detailBooking.paymentStatus === 'failed'
+                        : detailBooking?.paymentStatus === 'failed'
                           ? 'text-red-700'
                           : 'text-slate-600'
                   }`}
                 >
-                  {detailBooking.paymentStatus} Booking
+                  {detailBooking?.paymentStatus} Booking
                 </span>
                 <span className="text-xs text-slate-500 ml-2">
-                  (Booked on: {format(new Date(detailBooking.createdAt), 'PP')})
+                  (Booked on: {format(new Date(detailBooking?.createdAt), 'PP')}
+                  )
                 </span>
               </div>
             )}
@@ -451,22 +446,25 @@ export default function BookingsPage() {
                 <div className="flex justify-between">
                   <span className="text-slate-500">Route:</span>
                   <span className="font-medium text-right">
-                    {detailBooking.trip.route.name}
+                    {detailBooking?.trip?.route?.name}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Departure:</span>
                   <span className="font-medium text-right">
-                    {format(new Date(detailBooking.trip.departureTime), 'PPp')}
+                    {format(
+                      new Date(detailBooking?.trip?.departureTime),
+                      'PPp'
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Segments:</span>
                   <span className="font-medium text-right">
-                    {detailBooking.bookedSegments.map((seg, i) => (
+                    {detailBooking?.bookedSegments.map((seg, i) => (
                       <span key={i}>
                         {seg.origin} → {seg.destination}
-                        {i < detailBooking.bookedSegments.length - 1 ? (
+                        {i < detailBooking?.bookedSegments.length - 1 ? (
                           <br />
                         ) : (
                           ''
@@ -479,23 +477,23 @@ export default function BookingsPage() {
                 <div className="flex justify-between">
                   <span className="text-slate-500">Vehicle:</span>
                   <span className="font-medium text-right">
-                    {detailBooking.trip.vehicle.name} (
-                    {detailBooking.trip.vehicle.plateNumber})
+                    {detailBooking?.trip.vehicle.name} (
+                    {detailBooking?.trip.vehicle.plateNumber})
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Driver:</span>
                   <span className="font-medium text-right">
-                    {detailBooking.trip.driver.firstName}
-                    {detailBooking.trip.driver.lastName}
+                    {detailBooking?.trip.driver.firstName}
+                    {detailBooking?.trip.driver.lastName}
                   </span>
                 </div>
-                {detailBooking.seatNumbers &&
-                  detailBooking.seatNumbers.length > 0 && (
+                {detailBooking?.seatNumbers &&
+                  detailBooking?.seatNumbers.length > 0 && (
                     <div className="flex justify-between">
                       <span className="text-slate-500">Seats:</span>
                       <span className="font-medium text-right">
-                        {detailBooking.seatNumbers.join(', ')}
+                        {detailBooking?.seatNumbers.join(', ')}
                       </span>
                     </div>
                   )}
@@ -504,10 +502,10 @@ export default function BookingsPage() {
               <section className="md:col-span-1 space-y-3 border-r md:pr-6">
                 <h3 className="text-base font-semibold text-slate-800 flex items-center gap-2 border-b pb-1 mb-2">
                   <Users className="h-4 w-4 text-slate-500" /> Passengers (
-                  {detailBooking.passengers.length})
+                  {detailBooking?.passengers.length})
                 </h3>
                 <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                  {detailBooking.passengers.map((p, index) => (
+                  {detailBooking?.passengers.map((p, index) => (
                     <div
                       key={index}
                       className="text-xs border rounded p-2 bg-slate-50"
@@ -526,14 +524,14 @@ export default function BookingsPage() {
                     </div>
                   ))}
                 </div>
-                {detailBooking.bookedAddOns &&
-                  detailBooking.bookedAddOns.length > 0 && (
+                {detailBooking?.bookedAddOns &&
+                  detailBooking?.bookedAddOns.length > 0 && (
                     <div className="pt-3 mt-3 border-t">
                       <h3 className="text-base font-semibold text-slate-800 flex items-center gap-2 border-b pb-1 mb-2">
                         <Package className="h-4 w-4 text-slate-500" /> Add-Ons
                       </h3>
                       <ul className="list-disc list-inside text-xs space-y-1 pl-1 text-slate-600">
-                        {detailBooking.bookedAddOns.map((addon, i) => (
+                        {detailBooking?.bookedAddOns.map((addon, i) => (
                           <li key={i}>
                             {addon.name} (₦{addon.price.toLocaleString()})
                           </li>
@@ -551,36 +549,36 @@ export default function BookingsPage() {
                 <div className="flex justify-between">
                   <span className="text-slate-500">Total Cost:</span>
                   <span className="font-bold text-lg text-slate-900">
-                    ₦{detailBooking.totalCost.toLocaleString()}
+                    ₦{detailBooking?.totalCost.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Status:</span>
                   <Badge
                     //@ts-expect-error ???
-                    variant={getStatusVariant(detailBooking.paymentStatus)}
+                    variant={getStatusVariant(detailBooking?.paymentStatus)}
                     className="capitalize text-xs font-normal"
                   >
-                    {detailBooking.paymentStatus}
+                    {detailBooking?.paymentStatus}
                   </Badge>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Method:</span>
                   <span className="font-medium capitalize">
-                    {detailBooking.paymentMethod}
+                    {detailBooking?.paymentMethod}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Paystack Ref:</span>
                   <span className="font-medium text-xs break-all text-right">
-                    {detailBooking.paymentRef || 'N/A'}
+                    {detailBooking?.paymentRef || 'N/A'}
                   </span>
                 </div>
-                {detailBooking.markedAsPaidBy && (
+                {detailBooking?.markedAsPaidBy && (
                   <div className="flex justify-between">
                     <span className="text-slate-500">Marked Paid By:</span>
                     <span className="font-medium text-right text-xs">
-                      {detailBooking.markedAsPaidBy.name}
+                      {detailBooking?.markedAsPaidBy.name}
                     </span>
                   </div>
                 )}
@@ -604,7 +602,7 @@ export default function BookingsPage() {
             <AlertDialogDescription>
               {alertAction === 'paid'
                 ? 'This will mark the booking as paid and trigger a confirmation email. This cannot be undone.'
-                : 'This will cancel the booking. This cannot be undone.'}
+                : 'This will cancel the booking?. This cannot be undone.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

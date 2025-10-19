@@ -670,7 +670,16 @@ export default function BookPage() {
                 {trip.route.name}
               </h4>
               <p className="text-sm text-muted-foreground">
-                {from} → {to}
+                {trip.route.segments.map((s: any, i: number) => (
+                  <span key={i}>
+                    {s.origin}
+                    {i < trip.route.segments.length ? ' → ' : ''}
+                  </span>
+                ))}
+                {
+                  trip.route.segments[trip.route.segments.length - 1]
+                    ?.destination
+                }
               </p>
               <p className="text-sm text-muted-foreground mt-1">
                 {new Date(trip.departureTime).toLocaleString('en-US', {
