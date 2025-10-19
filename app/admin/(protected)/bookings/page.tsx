@@ -281,10 +281,12 @@ export default function BookingsPage() {
                         {booking?.trip?.route?.name}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {format(
-                          new Date(booking?.trip?.departureTime),
-                          'MMM d, yyyy h:mm a'
-                        )}
+                        {booking?.trip?.departureTime
+                          ? format(
+                              new Date(booking.trip.departureTime),
+                              'MMM d, yyyy h:mm a'
+                            )
+                          : 'N/A'}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -430,7 +432,10 @@ export default function BookingsPage() {
                   {detailBooking?.paymentStatus} Booking
                 </span>
                 <span className="text-xs text-slate-500 ml-2">
-                  (Booked on: {format(new Date(detailBooking?.createdAt), 'PP')}
+                  (Booked on:{' '}
+                  {detailBooking?.createdAt
+                    ? format(new Date(detailBooking.createdAt), 'PP')
+                    : 'N/A'}
                   )
                 </span>
               </div>
@@ -452,10 +457,12 @@ export default function BookingsPage() {
                 <div className="flex justify-between">
                   <span className="text-slate-500">Departure:</span>
                   <span className="font-medium text-right">
-                    {format(
-                      new Date(detailBooking?.trip?.departureTime),
-                      'PPp'
-                    )}
+                    {detailBooking?.trip?.departureTime
+                      ? format(
+                          new Date(detailBooking.trip.departureTime),
+                          'PPp'
+                        )
+                      : 'N/A'}
                   </span>
                 </div>
                 <div className="flex justify-between">
