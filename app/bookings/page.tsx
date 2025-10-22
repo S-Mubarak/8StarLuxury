@@ -1,14 +1,19 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { toast } from 'sonner';
+import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription,
+  CardFooter,
 } from '@/components/ui/card';
 import {
   Form,
@@ -19,22 +24,19 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
 import {
-  AlertCircle,
-  Armchair,
-  Bus,
-  CalendarDays,
   Loader2,
   Search,
+  AlertCircle,
   Ticket,
   User,
+  CalendarDays,
+  Bus,
+  Armchair,
+  Plane,
+  ArrowRight,
 } from 'lucide-react';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import * as z from 'zod';
+import { Badge } from '@/components/ui/badge';
 
 type FoundBooking = {
   _id: string;
@@ -47,7 +49,10 @@ type FoundBooking = {
   seatNumbers?: string[];
   trip: {
     departureTime: string;
-    route: { name: string };
+    route: {
+      name: string;
+      segments: { origin: string; destination: string; mode: 'road' | 'air' }[];
+    };
     vehicle: { name: string; plateNumber: string };
   };
 };
@@ -79,15 +84,12 @@ export default function FindBookingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identifier: values.identifier }),
       });
-
       const data = await response.json();
-
       if (!response.ok) {
         if (response.status === 404) {
           toast.info(
             data.message || 'No paid bookings found matching your search.'
           );
-
           setFoundBookings([]);
         } else {
           throw new Error(data.message || 'Failed to find bookings.');
@@ -106,7 +108,6 @@ export default function FindBookingPage() {
     <main className="flex min-h-[80vh] flex-col items-center p-6 bg-slate-50">
       <Card className="w-full max-w-lg mb-8 shadow-md bg-white rounded-lg">
         <CardHeader className="text-center border-b pb-4">
-          {' '}
           <CardTitle className="text-2xl font-semibold">
             Find Your Booking
           </CardTitle>
@@ -115,10 +116,8 @@ export default function FindBookingPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
-          {' '}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-              {' '}
               <FormField
                 control={form.control}
                 name="identifier"
@@ -157,7 +156,6 @@ export default function FindBookingPage() {
 
       {isLoading && (
         <div className="flex flex-col items-center text-slate-500 mt-8">
-          {' '}
           <Loader2 className="h-8 w-8 animate-spin mb-2" />
           <p>Searching for your booking...</p>
         </div>
@@ -178,9 +176,7 @@ export default function FindBookingPage() {
 
       {!isLoading && foundBookings.length > 0 && (
         <div className="w-full max-w-3xl space-y-6">
-          {' '}
           <h2 className="text-2xl font-semibold text-center mb-4 text-slate-800">
-            {' '}
             Found {foundBookings.length} Booking(s)
           </h2>
           {foundBookings.map((booking) => (
@@ -203,18 +199,12 @@ function BookingResultCard({ booking }: BookingCardProps) {
   const getStatusVariant = (
     status: string
   ): 'default' | 'destructive' | 'outline' | 'secondary' | 'success' => {
-    switch (status) {
-      case 'paid':
-        return 'success';
-      default:
-        return 'secondary';
-    }
+    return status === 'paid' ? 'success' : 'secondary';
   };
 
   return (
     <Card className="shadow-md overflow-hidden bg-white rounded-lg border border-slate-200">
       <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 p-4 border-b flex flex-row justify-between items-center space-y-0">
-        {' '}
         <div>
           <CardTitle className="text-base font-semibold text-slate-800 flex items-center gap-2">
             <Ticket className="h-5 w-5 text-blue-600" />
@@ -222,8 +212,7 @@ function BookingResultCard({ booking }: BookingCardProps) {
             <span className="font-mono text-blue-700">{booking.bookingId}</span>
           </CardTitle>
           <CardDescription className="text-xs mt-1">
-            Booked on:{' '}
-            {format(new Date(booking.createdAt), 'EEE, MMM d, yyyy')}{' '}
+            Booked on: {format(new Date(booking.createdAt), 'EEE, MMM d, yyyy')}
           </CardDescription>
         </div>
         <Badge
@@ -235,28 +224,62 @@ function BookingResultCard({ booking }: BookingCardProps) {
         </Badge>
       </CardHeader>
       <CardContent className="p-5 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-        {' '}
-        <div className="space-y-2 text-sm">
+        <div className="space-y-3 text-sm">
           <h4 className="font-semibold text-slate-700 mb-2 flex items-center gap-2">
             <CalendarDays className="h-4 w-4 text-slate-500" /> Trip Details
           </h4>
-          <div className="flex justify-between">
-            <span className="text-slate-500">Route:</span>
-            <span className="font-medium text-slate-800 text-right">
-              {booking.trip.route.name}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-slate-500">Path:</span>
-            <span className="font-medium text-slate-800 text-right">
-              {booking.bookedSegments[0].origin} →{' '}
-              {
+
+          <div className="space-y-1.5 text-sm text-muted-foreground border-l-2 border-slate-200 pl-3 ml-1">
+            {(() => {
+              const startOrigin = booking.bookedSegments[0].origin;
+              const endDestination =
                 booking.bookedSegments[booking.bookedSegments.length - 1]
-                  .destination
+                  .destination;
+              const allTripSegments = booking.trip.route.segments;
+
+              const startIndex = allTripSegments.findIndex(
+                (s) => s.origin === startOrigin
+              );
+              const endIndex = allTripSegments.findIndex(
+                (s) => s.destination === endDestination
+              );
+
+              if (startIndex === -1 || endIndex === -1) {
+                return (
+                  <p>
+                    {startOrigin} → {endDestination}
+                  </p>
+                );
               }
-            </span>
+
+              const userSegments = allTripSegments.slice(
+                startIndex,
+                endIndex + 1
+              );
+
+              return userSegments.map((seg, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  {seg.mode === 'road' ? (
+                    <Bus className="h-4 w-4 text-slate-500 flex-shrink-0" />
+                  ) : (
+                    <Plane className="h-4 w-4 text-slate-500 flex-shrink-0" />
+                  )}
+                  <span className="font-medium text-slate-700">
+                    {seg.origin}
+                  </span>
+                  <ArrowRight className="h-3 w-3 text-slate-400" />
+                  <span className="font-medium text-slate-700">
+                    {seg.destination}
+                  </span>
+                  <span className="text-xs capitalize ml-auto pr-1 text-slate-400">
+                    ({seg.mode})
+                  </span>
+                </div>
+              ));
+            })()}
           </div>
-          <div className="flex justify-between">
+
+          <div className="flex justify-between mt-3 pt-3 border-t">
             <span className="text-slate-500">Departure:</span>
             <span className="font-medium text-slate-800 text-right">
               {departureTime.toLocaleString('en-US', {
@@ -294,7 +317,7 @@ function BookingResultCard({ booking }: BookingCardProps) {
           </div>
           {booking.passengers.length > 1 && (
             <div className="flex justify-between">
-              <span className="text-slate-500">Total Pax:</span>
+              <span className="text-slate-500">Total Passengers:</span>
               <span className="font-medium text-slate-800 text-right">
                 {booking.passengers.length}
               </span>
@@ -303,7 +326,6 @@ function BookingResultCard({ booking }: BookingCardProps) {
         </div>
       </CardContent>
       <CardFooter className="bg-slate-50/70 p-4 flex justify-end items-center border-t">
-        {' '}
         <span className="text-sm text-slate-600 mr-2">Total Paid:</span>
         <span className="text-lg font-bold text-slate-900">
           ₦{booking.totalCost.toLocaleString()}

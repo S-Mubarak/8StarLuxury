@@ -1,20 +1,9 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Bus,
-  Check,
-  CreditCard,
-  Info,
-  Loader2,
-  PlusCircle,
-  Trash2,
-  User,
-  Users,
-} from 'lucide-react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useFieldArray, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
@@ -47,9 +36,23 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import SeatSelection from '@/components/user/SeatSelection';
-
+import SeatSelector from '@/components/user/SeatSelection';
 import { IAddOn } from '@/models/AddOn';
+
+import {
+  ArrowRight,
+  Bus,
+  Check,
+  CreditCard,
+  Info,
+  Loader2,
+  Plane,
+  PlusCircle,
+  Trash2,
+  User,
+  Users,
+} from 'lucide-react';
+
 type PopulatedTrip = any;
 
 const passengerSchema = z.object({
@@ -59,7 +62,7 @@ const passengerSchema = z.object({
   }),
   firstName: z.string().min(2, 'First name is required'),
   lastName: z.string().min(2, 'Last name is required'),
-  email: z.string().email('Invalid email').optional(),
+  email: z.email('Invalid email').optional(),
   phoneNumber: z.string().min(10, 'Invalid phone').optional(),
   nationality: z.string().optional(),
   gender: z.enum(['Male', 'Female', 'Other']).optional(),
@@ -74,24 +77,45 @@ const passengerSchema = z.object({
 const bookingFormSchema = z.object({
   passengers: z
     .array(passengerSchema)
-    .min(1, 'At least one passenger is required')
-    .refine(
-      (passengers) => passengers[0].email && passengers[0].email.length > 0,
-      {
-        message: 'Email is required for the lead passenger.',
-        path: ['passengers', 0, 'email'],
-      }
-    )
-    .refine(
-      (passengers) =>
-        passengers[0].phoneNumber && passengers[0].phoneNumber.length > 0,
-      {
-        message: 'Phone Number is required for the lead passenger.',
-        path: ['passengers', 0, 'phoneNumber'],
-      }
-    ),
+    .min(1)
+    .refine((p) => p[0].email && p[0].email.length > 0, {
+      message: 'Email is required for the lead passenger.',
+      path: ['passengers', 0, 'email'],
+    })
+    .refine((p) => p[0].phoneNumber && p[0].phoneNumber.length > 0, {
+      message: 'Phone Number is required for the lead passenger.',
+      path: ['passengers', 0, 'phoneNumber'],
+    }),
 });
 type BookingFormValues = z.infer<typeof bookingFormSchema>;
+
+const CAR_LAYOUTS = {
+  sedan: { rows: 3, seatsPerRow: [2, 2, 2] },
+  suv: { rows: 3, seatsPerRow: [2, 3, 3] },
+  van: { rows: 4, seatsPerRow: [2, 3, 3, 4] },
+  compact: { rows: 2, seatsPerRow: [2, 2] },
+  luxury: { rows: 3, seatsPerRow: [2, 2, 2] },
+};
+const generateSeatLabelMap = (
+  capacity: number,
+  carType: keyof typeof CAR_LAYOUTS
+): Map<number, string> => {
+  const seatMap = new Map<number, string>();
+  const layout = CAR_LAYOUTS[carType];
+  if (!layout) return seatMap;
+  let seatNumber = 1;
+  for (let row = 0; row < layout.rows; row++) {
+    for (let col = 0; col < layout.seatsPerRow[row]; col++) {
+      const isDriver = row === 0 && col === 0;
+      if (!isDriver && seatNumber <= capacity) {
+        const label = String.fromCharCode(65 + row) + (col + 1);
+        seatMap.set(seatNumber, label);
+        seatNumber++;
+      }
+    }
+  }
+  return seatMap;
+};
 
 export default function BookPage() {
   const router = useRouter();
@@ -104,9 +128,8 @@ export default function BookPage() {
   const [trip, setTrip] = useState<PopulatedTrip | null>(null);
   const [addons, setAddons] = useState<IAddOn[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
   const [passengerCount, setPassengerCount] = useState(1);
-  const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
+  const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
   const [selectedAddOns, setSelectedAddOns] = useState<IAddOn[]>([]);
 
   const form = useForm<BookingFormValues>({
@@ -114,12 +137,12 @@ export default function BookPage() {
     defaultValues: {
       passengers: [
         {
-          title: undefined,
+          title: 'Mr',
           firstName: '',
           lastName: '',
           email: '',
           phoneNumber: '',
-          documentType: undefined,
+          documentType: 'NIN',
           idNumber: '',
         },
       ],
@@ -148,13 +171,11 @@ export default function BookPage() {
         if (!addonsRes.ok) throw new Error('Could not load add-ons.');
         const tripData = await tripRes.json();
         const addonsData = await addonsRes.json();
-
         const availableCapacity =
           tripData.vehicle.capacity - (tripData.bookedSeats?.length || 0);
         if (availableCapacity <= 0) {
           throw new Error('This trip is fully booked.');
         }
-
         setTrip({ ...tripData, availableCapacity });
         setAddons(addonsData.data);
       } catch (error: any) {
@@ -170,7 +191,6 @@ export default function BookPage() {
   const handlePassengerCountChange = (value: string) => {
     const count = parseInt(value, 10);
     setPassengerCount(count);
-
     const currentCount = fields.length;
     if (count > currentCount) {
       for (let i = currentCount; i < count; i++) {
@@ -192,7 +212,7 @@ export default function BookPage() {
     setSelectedSeats([]);
   };
 
-  const segmentPrice = useMemo(() => {
+  const basePrice = useMemo(() => {
     if (!trip || !from || !to) return 0;
     const { segments } = trip.route;
     let startIndex = -1,
@@ -206,9 +226,9 @@ export default function BookPage() {
     for (let i = startIndex; i <= endIndex; i++) {
       totalCost += segments[i].cost;
     }
-    return totalCost;
-  }, [trip, from, to]);
-  const basePrice = segmentPrice * passengerCount;
+    return totalCost * passengerCount;
+  }, [trip, from, to, passengerCount]);
+
   const addonsPrice = useMemo(() => {
     let total = 0;
     for (const addon of selectedAddOns) {
@@ -219,6 +239,7 @@ export default function BookPage() {
     }
     return total;
   }, [selectedAddOns, passengerCount]);
+
   const totalPrice = basePrice + addonsPrice;
 
   const isRoadTrip = useMemo(() => {
@@ -237,6 +258,28 @@ export default function BookPage() {
     return false;
   }, [trip, from, to]);
 
+  const seatLabelMap = useMemo(
+    () =>
+      trip
+        ? generateSeatLabelMap(
+            trip.vehicle.capacity,
+            trip.vehicle.carType || 'suv'
+          )
+        : new Map(),
+    [trip]
+  );
+  const bookedSeatsAsNumbers = useMemo(() => {
+    if (!trip || !seatLabelMap.size) return [];
+    const bookedNumbers: number[] = [];
+    const bookedLabels = new Set(trip.bookedSeats);
+    seatLabelMap.forEach((label, number) => {
+      if (bookedLabels.has(label)) {
+        bookedNumbers.push(number);
+      }
+    });
+    return bookedNumbers;
+  }, [trip, seatLabelMap]);
+
   const toggleAddOn = (addon: IAddOn) => {
     setSelectedAddOns((prev) =>
       prev.find((a) => a._id === addon._id)
@@ -244,17 +287,12 @@ export default function BookPage() {
         : [...prev, addon]
     );
   };
-  const handleSeatSelect = (seatId: string) => {
-    setSelectedSeats((prev) => {
-      if (prev.includes(seatId)) {
-        return prev.filter((s) => s !== seatId);
-      }
-      if (prev.length < passengerCount) {
-        return [...prev, seatId];
-      }
-      toast.warning(`You can only select ${passengerCount} seat(s).`);
-      return prev;
-    });
+  const handleSeatSelect = (seatNumber: number) => {
+    setSelectedSeats((prev) =>
+      prev.includes(seatNumber)
+        ? prev.filter((s) => s !== seatNumber)
+        : [...prev, seatNumber]
+    );
   };
 
   const onSubmit = (values: BookingFormValues) => {
@@ -267,6 +305,9 @@ export default function BookPage() {
         ? p
         : { ...p, email: p.email || 'N/A', phoneNumber: p.phoneNumber || 'N/A' }
     );
+    const seatNumbersAsStrings = selectedSeats
+      .sort((a, b) => a - b)
+      .map((num) => seatLabelMap.get(num) || String(num));
     const bookingData = {
       tripId: trip._id,
       passengers: finalPassengers,
@@ -276,7 +317,7 @@ export default function BookPage() {
           trip.route.segments.findIndex((s: any) => s.destination === to) + 1
         )
         .map((s: any) => ({ origin: s.origin, destination: s.destination })),
-      seatNumbers: selectedSeats || [],
+      seatNumbers: seatNumbersAsStrings,
       bookedAddOns: selectedAddOns.map((a) => ({
         _id: a._id,
         name: a.name,
@@ -300,7 +341,6 @@ export default function BookPage() {
       </div>
     );
   }
-
   if (!trip) return null;
 
   const maxPassengers = Math.min(trip.availableCapacity, 5);
@@ -317,7 +357,7 @@ export default function BookPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block">
+            <label className="text-sm font-medium leading-none mb-2 block">
               How many passengers?
             </label>
             <Select
@@ -338,33 +378,23 @@ export default function BookPage() {
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground mt-2">
-              Maximum {maxPassengers} passengers for this trip. Available seats:
+              Maximum {maxPassengers} passengers. Available seats:{' '}
               {trip.availableCapacity}
             </p>
           </CardContent>
         </Card>
+
         {isRoadTrip && (
-          <Card className="bg-white shadow-sm">
-            <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-4">
-              <Bus className="h-6 w-6 text-blue-600" />
-              <div>
-                <CardTitle>Seat Selection</CardTitle>
-                <CardDescription>
-                  Choose preferred seats for your journey.
-                </CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <SeatSelection
-                capacity={trip.vehicle.capacity}
-                bookedSeats={trip.vehicle.bookedSeats}
-                selectedSeats={selectedSeats}
-                onSeatSelect={handleSeatSelect}
-                passengerCount={passengerCount}
-              />
-            </CardContent>
-          </Card>
+          <SeatSelector
+            carType={trip.vehicle.carType || 'suv'}
+            capacity={trip.vehicle.capacity}
+            bookedSeats={bookedSeatsAsNumbers}
+            selectedSeats={selectedSeats}
+            onSeatSelect={handleSeatSelect}
+            passengerCount={passengerCount}
+          />
         )}
+
         {addons.length > 0 && (
           <Card className="bg-white shadow-sm">
             <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-4">
@@ -385,7 +415,6 @@ export default function BookPage() {
                   <div className="pr-4 flex-1">
                     <div className="flex items-center justify-between">
                       <h4 className="font-semibold">{addon.name}</h4>
-
                       {selectedAddOns.some((a) => a._id === addon._id) && (
                         <Check className="h-5 w-5 text-blue-600" />
                       )}
@@ -411,6 +440,7 @@ export default function BookPage() {
             </CardContent>
           </Card>
         )}
+
         <div className="space-y-6">
           <div className="flex items-center gap-3">
             <Info className="h-6 w-6 text-blue-600" />
@@ -426,7 +456,7 @@ export default function BookPage() {
                   <CardHeader className="flex flex-row items-center justify-between bg-slate-50 p-4 border-b">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <User className="h-5 w-5 text-slate-600" />
-                      Passenger {index + 1}
+                      Passenger {index + 1}{' '}
                       {index === 0 && (
                         <Badge variant="outline">Lead Booker</Badge>
                       )}
@@ -454,10 +484,10 @@ export default function BookPage() {
                         name={`passengers.${index}.title`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Title</FormLabel>
+                            <FormLabel>Title *</FormLabel>
                             <Select
                               onValueChange={field.onChange}
-                              defaultValue={field.value}
+                              value={field.value}
                             >
                               <FormControl>
                                 <SelectTrigger>
@@ -480,7 +510,7 @@ export default function BookPage() {
                         name={`passengers.${index}.firstName`}
                         render={({ field }) => (
                           <FormItem className="sm:col-span-2">
-                            <FormLabel>First Name</FormLabel>
+                            <FormLabel>First Name *</FormLabel>
                             <FormControl>
                               <Input placeholder="John" {...field} />
                             </FormControl>
@@ -494,7 +524,7 @@ export default function BookPage() {
                       name={`passengers.${index}.lastName`}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Last Name</FormLabel>
+                          <FormLabel>Last Name *</FormLabel>
                           <FormControl>
                             <Input placeholder="Doe" {...field} />
                           </FormControl>
@@ -509,7 +539,7 @@ export default function BookPage() {
                     <FormDescription className="text-xs">
                       {index === 0
                         ? 'Your e-ticket will be sent here.'
-                        : 'Optional for other passengers.'}
+                        : 'Optional.'}
                     </FormDescription>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField
@@ -519,11 +549,7 @@ export default function BookPage() {
                           <FormItem>
                             <FormLabel>Email {index === 0 && '*'}</FormLabel>
                             <FormControl>
-                              <Input
-                                type="email"
-                                placeholder="john.doe@example.com"
-                                {...field}
-                              />
+                              <Input type="email" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -538,11 +564,7 @@ export default function BookPage() {
                               Phone Number {index === 0 && '*'}
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                type="tel"
-                                placeholder="08012345678"
-                                {...field}
-                              />
+                              <Input type="tel" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -562,7 +584,7 @@ export default function BookPage() {
                             <FormLabel>Document Type *</FormLabel>
                             <Select
                               onValueChange={field.onChange}
-                              defaultValue={field.value}
+                              value={field.value}
                             >
                               <FormControl>
                                 <SelectTrigger>
@@ -587,7 +609,7 @@ export default function BookPage() {
                           <FormItem>
                             <FormLabel>ID Number *</FormLabel>
                             <FormControl>
-                              <Input placeholder="1234567890" {...field} />
+                              <Input {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -606,7 +628,7 @@ export default function BookPage() {
                           <FormItem>
                             <FormLabel>Nationality</FormLabel>
                             <FormControl>
-                              <Input placeholder="Nigerian" {...field} />
+                              <Input {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -620,7 +642,7 @@ export default function BookPage() {
                             <FormLabel>Gender</FormLabel>
                             <Select
                               onValueChange={field.onChange}
-                              defaultValue={field.value}
+                              value={field.value}
                             >
                               <FormControl>
                                 <SelectTrigger>
@@ -666,46 +688,114 @@ export default function BookPage() {
           </CardHeader>
           <CardContent className="p-5 space-y-4">
             <div className="pb-3 border-b border-dashed">
-              <h4 className="font-semibold text-slate-800">
+              <h4 className="font-semibold text-slate-800 mb-2">
                 {trip.route.name}
               </h4>
-              <p className="text-sm text-muted-foreground">
-                {trip.route.segments.map((s: any, i: number) => (
-                  <span key={i}>
-                    {s.origin}
-                    {i < trip.route.segments.length ? ' → ' : ''}
-                  </span>
-                ))}
-                {
-                  trip.route.segments[trip.route.segments.length - 1]
-                    ?.destination
-                }
-              </p>
-              <p className="text-sm text-muted-foreground mt-1">
+              <div className="space-y-1.5 text-sm text-muted-foreground">
+                <p className="text-xs font-medium text-slate-600 mb-1">
+                  Full Trip Itinerary:
+                </p>
+                {trip.route.segments.map((seg: any, i: number) => {
+                  const isBookedSegment = (() => {
+                    const allSegments = trip.route.segments;
+                    let startIndex = -1;
+                    let endIndex = -1;
+                    for (let k = 0; k < allSegments.length; k++) {
+                      if (allSegments[k].origin === from) startIndex = k;
+                      if (allSegments[k].destination === to) endIndex = k;
+                    }
+                    return (
+                      startIndex !== -1 &&
+                      endIndex !== -1 &&
+                      i >= startIndex &&
+                      i <= endIndex
+                    );
+                  })();
+                  const Icon = seg.mode === 'road' ? Bus : Plane;
+                  return (
+                    <div
+                      key={i}
+                      className={`flex items-center gap-2 pl-1 rounded ${isBookedSegment ? 'bg-blue-50 py-0.5' : ''}`}
+                    >
+                      <Icon
+                        className={`h-3.5 w-3.5 flex-shrink-0 ${isBookedSegment ? 'text-blue-600' : 'text-slate-500'}`}
+                      />
+                      <span
+                        className={`${isBookedSegment ? 'font-medium text-slate-700' : ''}`}
+                      >
+                        {seg.origin}
+                      </span>
+                      <ArrowRight
+                        className={`h-3 w-3 ${isBookedSegment ? 'text-blue-500' : 'text-slate-400'}`}
+                      />
+                      <span
+                        className={`${isBookedSegment ? 'font-medium text-slate-700' : ''}`}
+                      >
+                        {seg.destination}
+                      </span>
+                      <span
+                        className={`text-xs capitalize ml-auto pr-1 ${isBookedSegment ? 'text-blue-600' : 'text-slate-400'}`}
+                      >
+                        ({seg.mode})
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-sm text-muted-foreground mt-3">
+                <span className="font-medium text-slate-600">Departure:</span>{' '}
                 {new Date(trip.departureTime).toLocaleString('en-US', {
                   dateStyle: 'full',
                   timeStyle: 'short',
                 })}
               </p>
             </div>
-            <div className="space-y-2 text-sm">
+
+            <div className="space-y-2 text-sm pt-3 border-t border-dashed">
+              <h5 className="font-medium text-slate-700">Price Breakdown:</h5>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Passengers</span>
                 <span className="font-medium">{passengerCount}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Base Price</span>
-                <span className="font-medium">
-                  ₦{segmentPrice.toLocaleString()} x {passengerCount}
-                </span>
-              </div>
-              <div className="flex justify-between font-semibold">
-                <span className="text-muted-foreground">Subtotal</span>
+
+              {(() => {
+                const allSegments = trip.route.segments;
+                let startIndex = -1,
+                  endIndex = -1;
+                for (let i = 0; i < allSegments.length; i++) {
+                  if (allSegments[i].origin === from) startIndex = i;
+                  if (allSegments[i].destination === to) endIndex = i;
+                }
+                const bookedSegmentsList =
+                  startIndex !== -1 && endIndex !== -1 && endIndex >= startIndex
+                    ? allSegments.slice(startIndex, endIndex + 1)
+                    : [];
+
+                return bookedSegmentsList.map((seg: any, i: number) => (
+                  <div key={i} className="flex justify-between pl-2">
+                    <span className="text-muted-foreground">
+                      {seg.origin} → {seg.destination}
+                    </span>
+                    <span className="font-medium">
+                      ₦{(seg.cost * passengerCount).toLocaleString()}
+                      {passengerCount > 1 && (
+                        <span className="text-xs text-slate-400 ml-1">
+                          ({`₦${seg.cost.toLocaleString()}`} / person)
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                ));
+              })()}
+
+              <div className="flex justify-between font-semibold pt-1 border-t mt-1">
+                <span className="text-muted-foreground">Trip Total</span>
                 <span className="font-medium text-slate-800">
                   ₦{basePrice.toLocaleString()}
                 </span>
               </div>
             </div>
+
             {selectedAddOns.length > 0 && (
               <div className="space-y-2 text-sm pt-3 border-t border-dashed">
                 <h5 className="font-medium text-slate-700">

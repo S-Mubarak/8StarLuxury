@@ -15,9 +15,9 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, plateNumber, capacity, amenities } = body;
+    const { name, plateNumber, capacity, amenities, carType } = body;
 
-    if (!name || !plateNumber || !capacity) {
+    if (!name || !plateNumber || !capacity || !carType) {
       return NextResponse.json(
         { message: 'Missing required fields' },
         { status: 400 }
@@ -37,6 +37,7 @@ export async function POST(request: Request) {
       plateNumber,
       capacity,
       amenities: amenities || [],
+      carType,
     });
 
     const savedVehicle = await newVehicle.save();

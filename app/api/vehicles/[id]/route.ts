@@ -60,9 +60,9 @@ export async function PUT(request: Request, context: RouteContext) {
     }
 
     const body = await request.json();
-    const { name, plateNumber, capacity, amenities } = body;
+    const { name, plateNumber, capacity, amenities, carType } = body;
 
-    if (!name || !plateNumber || !capacity) {
+    if (!name || !plateNumber || !capacity || !carType) {
       return NextResponse.json(
         { message: 'Missing required fields' },
         { status: 400 }
@@ -82,7 +82,7 @@ export async function PUT(request: Request, context: RouteContext) {
 
     const updatedVehicle = await Vehicle.findByIdAndUpdate(
       id,
-      { name, plateNumber, capacity, amenities },
+      { name, plateNumber, capacity, amenities, carType },
       { new: true, runValidators: true }
     );
 

@@ -5,11 +5,24 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Card, CardDescription, CardTitle } from '@/components/ui/card';
-import { AlertCircle, ArrowRight, Loader2, Truck, Wifi } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  AlertCircle,
+  ArrowRight,
+  Bus,
+  Loader2,
+  Plane,
+  Truck,
+  Wifi,
+} from 'lucide-react';
 
 type PopulatedTrip = {
   _id: string;
@@ -46,12 +59,10 @@ export default function SearchResultsContent() {
 
   const [allMatchingTrips, setAllMatchingTrips] = useState<PopulatedTrip[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     if (!from || !to) return;
-
     const fetchTrips = async () => {
       setIsLoading(true);
       try {
@@ -61,6 +72,7 @@ export default function SearchResultsContent() {
         setAllMatchingTrips(data);
       } catch (error: any) {
         toast.error(error.message);
+        setAllMatchingTrips([]);
       } finally {
         setIsLoading(false);
       }
@@ -86,18 +98,13 @@ export default function SearchResultsContent() {
 
   const calculateTripPrice = (trip: PopulatedTrip) => {
     const { segments } = trip.route;
-    let startIndex = -1;
-    let endIndex = -1;
-
+    let startIndex = -1,
+      endIndex = -1;
     for (let i = 0; i < segments.length; i++) {
       if (segments[i].origin === from) startIndex = i;
       if (segments[i].destination === to) endIndex = i;
     }
-
-    if (startIndex === -1 || endIndex === -1 || endIndex < startIndex) {
-      return 0;
-    }
-
+    if (startIndex === -1 || endIndex === -1 || endIndex < startIndex) return 0;
     let totalCost = 0;
     for (let i = startIndex; i <= endIndex; i++) {
       totalCost += segments[i].cost;
@@ -121,70 +128,73 @@ export default function SearchResultsContent() {
   }
 
   return (
-    <main className="flex-1 w-full max-w-6xl mx-auto p-6">
-      <h1 className="text-3xl font-bold">Available Trips</h1>
-      <p className="text-xl text-muted-foreground mb-6">
-        From <span className="text-blue-600 font-semibold">{from}</span> to{' '}
-        <span className="text-blue-600 font-semibold">{to}</span>
-      </p>
-
+    <main className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-6">
+      {' '}
+      <div>
+        <h1 className="text-3xl font-bold">Available Trips</h1>
+        <p className="text-xl text-muted-foreground mb-6">
+          From <span className="text-blue-600 font-semibold">{from}</span> to{' '}
+          <span className="text-blue-600 font-semibold">{to}</span>
+        </p>
+      </div>
       {allMatchingTrips.length === 0 ? (
-        <Card className="flex flex-col items-center p-8">
+        <Card className="flex flex-col items-center p-8 mt-8 border-dashed">
           <AlertCircle className="h-16 w-16 text-yellow-500" />
           <h2 className="mt-4 text-2xl font-semibold">No Trips Found</h2>
           <p className="mt-2 text-muted-foreground">
             We couldn&apos;t find any scheduled trips for this route.
           </p>
-          <Button onClick={() => router.push('/')} className="mt-6">
+          <Button
+            onClick={() => router.push('/')}
+            className="mt-6 bg-slate-800 hover:bg-slate-700"
+          >
             Try Another Search
           </Button>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="flex flex-col justify-center items-center">
-            <div className="h-full ">
-              <h2 className="text-xl font-semibold mb-3">Select a Date</h2>
-
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                fromDate={new Date()}
-                modifiers={{
-                  available: availableDates,
-                }}
-                modifiersClassNames={{
-                  available: 'bg-blue-600 text-white rounded-full',
-                }}
-                disabled={(date) => {
-                  return (
-                    date < startOfDay(new Date()) ||
-                    !availableDates.some(
-                      (d) => d.getTime() === startOfDay(date).getTime()
-                    )
-                  );
-                }}
-              />
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-1">
+            <Card className="sticky top-24 shadow-sm">
+              {' '}
+              <CardHeader>
+                <CardTitle className="text-xl">Select a Date</CardTitle>
+              </CardHeader>
+              <CardContent className="p-2 flex justify-center">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  fromDate={new Date()}
+                  modifiers={{ available: availableDates }}
+                  modifiersClassNames={{
+                    available:
+                      'bg-blue-600 text-white hover:bg-blue-700 focus:bg-blue-700 rounded-md',
+                  }}
+                  disabled={(date) => {
+                    return (
+                      date < startOfDay(new Date()) ||
+                      !availableDates.some(
+                        (d) => d.getTime() === startOfDay(date).getTime()
+                      )
+                    );
+                  }}
+                />
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="md:col-span-2">
-            <h2 className="text-xl font-semibold mb-3">
+          <div className="lg:col-span-2">
+            <h2 className="text-xl font-semibold mb-4">
               {selectedDate
                 ? `Trips for ${format(selectedDate, 'PPP')}`
-                : 'Please select a date'}
+                : 'Please select an available date'}
             </h2>
 
             {!selectedDate ? (
-              <Card className="flex items-center justify-center p-12">
-                <p className="text-muted-foreground">
-                  Select an available date on the calendar to see trips.
-                </p>
-              </Card>
-            ) : tripsForSelectedDate.length === 0 ? (
-              <Card className="flex items-center justify-center p-12">
-                <p className="text-muted-foreground">
-                  No trips found for this date (this shouldn&apos;t happen).
+              <Card className="flex items-center justify-center p-12 border-dashed">
+                <p className="text-muted-foreground text-center">
+                  Select a highlighted date on the calendar to see available
+                  trips.
                 </p>
               </Card>
             ) : (
@@ -192,104 +202,124 @@ export default function SearchResultsContent() {
                 {tripsForSelectedDate.map((trip) => {
                   const price = calculateTripPrice(trip);
 
+                  const allSegments = trip.route.segments;
+                  let startIndex = -1;
+                  let endIndex = -1;
+                  for (let i = 0; i < allSegments.length; i++) {
+                    if (allSegments[i].origin === from) startIndex = i;
+                    if (allSegments[i].destination === to) endIndex = i;
+                  }
+                  const relevantSegments =
+                    startIndex !== -1 &&
+                    endIndex !== -1 &&
+                    endIndex >= startIndex
+                      ? allSegments.slice(startIndex, endIndex + 1)
+                      : [];
+
                   const getAmenityIcon = (amenity: string) => {
                     if (amenity.toLowerCase().includes('wifi'))
-                      return <Wifi className="h-4 w-4 mr-1 text-blue-500" />;
-                    if (amenity.toLowerCase().includes('ac'))
-                      return (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 mr-1 text-blue-500"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.33 6.33a.75.75 0 011.06-1.06L10 9.94l4.61-4.67a.75.75 0 111.06 1.06L11.06 11l4.61 4.61a.75.75 0 11-1.06 1.06L10 12.06l-4.61 4.61a.75.75 0 01-1.06-1.06L8.94 11 4.33 6.33z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      );
-                    if (amenity.toLowerCase().includes('refreshment'))
-                      return (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 mr-1 text-blue-500"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path d="M10 3a1 1 0 01.993.883L11 4v1.172l4.243-4.243a1 1 0 111.414 1.414L12.414 6.5H14a1 1 0 01.993.883L15 7.5v3a1 1 0 01-.883.993L14 11.5h-1.586l4.243 4.243a1 1 0 11-1.414 1.414L11 12.914V16a1 1 0 01-.883.993L10 17a1 1 0 01-.993-.883L9 16v-3.086l-4.243 4.243a1 1 0 11-1.414-1.414L7.586 11.5H6a1 1 0 01-.993-.883L5 10.5v-3a1 1 0 01.883-.993L6 6.5h1.586L3.343 2.257A1 1 0 014.757.843L9 5.086V4a1 1 0 01.883-.993L10 3zm0 5.5a2 2 0 100 4 2 2 0 000-4z" />
-                        </svg>
-                      );
+                      return <Wifi className="h-3 w-3 mr-1.5 text-blue-500" />;
 
                     return null;
+                  };
+                  const getModeIcon = (mode: string) => {
+                    return mode === 'road' ? (
+                      <Truck className="h-5 w-5 mr-2 flex-shrink-0 text-slate-500" />
+                    ) : (
+                      <Plane className="h-5 w-5 mr-2 flex-shrink-0 text-slate-500" />
+                    );
                   };
 
                   return (
                     <Card
                       key={trip._id}
-                      className="overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
+                      className="overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300"
                     >
                       <div className="flex flex-col sm:flex-row">
                         <div className="flex-1 p-4 sm:p-5">
-                          <div className="flex justify-between items-start mb-2">
+                          <div className="flex justify-between items-start mb-4 border-b pb-3">
                             <div>
                               <CardTitle className="text-xl font-bold text-slate-900">
-                                {format(
-                                  new Date(trip.departureTime),
-                                  'h:mm a'
-                                )}{' '}
+                                {format(new Date(trip.departureTime), 'h:mm a')}{' '}
+                                Departure
                               </CardTitle>
-                              <CardDescription className="text-sm">
-                                Driver: {trip.driver.firstName}{' '}
-                                {trip.driver.lastName}
-                              </CardDescription>
+                              {relevantSegments.some(
+                                (seg) => seg.mode === 'road'
+                              ) && (
+                                <CardDescription className="text-sm mt-1">
+                                  Driver: {trip.driver.firstName}{' '}
+                                  {trip.driver.lastName}
+                                </CardDescription>
+                              )}
                             </div>
-                            <Badge
-                              variant="outline"
-                              className="text-xs mt-1 capitalize"
-                            >
-                              {trip.status}
-                            </Badge>
                           </div>
 
-                          <div className="text-sm text-slate-600 space-y-1 mt-3">
-                            <div className="flex items-center">
-                              <Truck className="h-4 w-4 mr-2 flex-shrink-0" />
-                              <span className="font-medium text-slate-800">
-                                {trip.vehicle.name}
-                              </span>
-                            </div>
-                            {trip.vehicle.amenities.length > 0 && (
-                              <div className="flex items-center flex-wrap gap-x-3 gap-y-1 pt-1">
-                                {trip.vehicle.amenities.map((amenity) => (
-                                  <span
-                                    key={amenity}
-                                    className="flex items-center text-xs text-slate-500"
-                                  >
-                                    {getAmenityIcon(amenity)} {amenity}
-                                  </span>
-                                ))}
+                          <div className="space-y-4 mt-4">
+                            <h4 className="text-sm font-semibold text-slate-700">
+                              Your Journey:
+                            </h4>
+                            {relevantSegments.map((segment, index) => (
+                              <div
+                                key={index}
+                                className="pl-3 border-l-2 border-slate-200 relative"
+                              >
+                                <div className="absolute -left-[5.5px] top-1 h-2.5 w-2.5 rounded-full bg-slate-400 ring-4 ring-white"></div>
+                                <div className="flex items-center text-sm font-medium text-slate-800 mb-1">
+                                  {getModeIcon(segment.mode)}
+                                  <span>{segment.origin}</span>
+                                  <ArrowRight className="h-3 w-3 mx-1.5 text-slate-400" />
+                                  <span>{segment.destination}</span>
+                                </div>
+                                {segment.mode === 'road' && (
+                                  <div className="text-xs text-slate-600 pl-8 space-y-1">
+                                    <div className="flex items-center">
+                                      <Bus className="h-4 w-4 mr-1.5 flex-shrink-0 text-slate-500" />
+                                      Vehicle: {trip.vehicle.name}
+                                    </div>
+                                    {trip.vehicle.amenities.length > 0 && (
+                                      <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
+                                        {trip.vehicle.amenities.map(
+                                          (amenity) => (
+                                            <span
+                                              key={amenity}
+                                              className="flex items-center text-slate-500"
+                                            >
+                                              {getAmenityIcon(amenity)}{' '}
+                                              {amenity}
+                                            </span>
+                                          )
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                                {segment.mode === 'air' && (
+                                  <div className="text-xs text-slate-600 pl-8">
+                                    <p>
+                                      Flight segment details will be provided
+                                      upon booking confirmation.
+                                    </p>
+                                  </div>
+                                )}
                               </div>
-                            )}
+                            ))}
                           </div>
                         </div>
 
-                        <div className="bg-slate-50/70 p-4 sm:p-5 sm:w-48 flex flex-col items-start sm:items-end justify-between border-t sm:border-t-0 sm:border-l border-slate-200">
+                        <div className="bg-slate-50/70 p-4 sm:p-5 sm:w-52 flex flex-col items-start sm:items-end justify-between border-t sm:border-t-0 sm:border-l border-slate-200">
                           <div className="text-left sm:text-right w-full">
                             <p className="text-sm text-slate-500 mb-0.5">
-                              Price per seat
+                              Price per person
                             </p>
-                            <p className="text-2xl font-bold text-blue-600">
+                            <p className="text-3xl font-bold text-blue-600">
                               ₦{price.toLocaleString()}
                             </p>
                           </div>
                           <Button
-                            className="w-full bg-blue-600 hover:bg-blue-700 mt-3"
-                            size="sm"
+                            className="w-full bg-blue-600 hover:bg-blue-700 mt-4"
                             onClick={() => handleBookNow(trip._id)}
                           >
-                            Book Seat <ArrowRight className="h-4 w-4 ml-2" />
+                            Book Now <ArrowRight className="h-4 w-4 ml-2" />
                           </Button>
                         </div>
                       </div>

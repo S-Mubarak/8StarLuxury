@@ -1,12 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
-
-import { IVehicle } from '@/models/Vehicle';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import * as z from 'zod';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -38,6 +30,13 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Table,
   TableBody,
   TableCaption,
@@ -47,7 +46,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-
+import { CarType, IVehicle } from '@/models/Vehicle';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Bus,
   ChevronLeft,
@@ -60,12 +60,20 @@ import {
   Trash2,
   Wrench,
 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import * as z from 'zod';
+
+const carTypes: CarType[] = ['sedan', 'suv', 'van', 'compact', 'luxury'];
 
 const formSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
   plateNumber: z.string().min(3, 'Plate number is required.'),
   capacity: z.coerce.number().int().min(1, 'Capacity must be at least 1.'),
   amenities: z.string().optional(),
+  //@ts-expect-error TS2322: Type '"sedan"' is not assignable to type 'CarType'.
+  carType: z.enum(carTypes, { required_error: 'Car type is required.' }),
 });
 type VehicleFormValues = z.infer<typeof formSchema>;
 
@@ -82,7 +90,13 @@ export default function VehiclesPage() {
   const form = useForm<VehicleFormValues>({
     //@ts-expect-error ???
     resolver: zodResolver(formSchema),
-    defaultValues: { name: '', plateNumber: '', capacity: 1, amenities: '' },
+    defaultValues: {
+      name: '',
+      plateNumber: '',
+      capacity: 1,
+      amenities: '',
+      carType: 'suv',
+    },
   });
 
   const fetchVehicles = useCallback(async (page = 1, rowsPerPage = 10) => {
@@ -98,8 +112,10 @@ export default function VehiclesPage() {
       setCurrentPage(data.pagination.currentPage);
       setTotalCount(data.pagination.totalCount);
       setLimit(rowsPerPage);
-    } catch (error) {
+    } catch (error: any) {
       toast.error('Failed to fetch vehicles.');
+      console.error(error);
+
       setVehicles([]);
       setTotalPages(1);
       setCurrentPage(1);
@@ -114,7 +130,13 @@ export default function VehiclesPage() {
 
   const openNewForm = () => {
     setEditingVehicle(null);
-    form.reset({ name: '', plateNumber: '', capacity: 1, amenities: '' });
+    form.reset({
+      name: '',
+      plateNumber: '',
+      capacity: 1,
+      amenities: '',
+      carType: 'suv',
+    });
     setIsDialogOpen(true);
   };
   const openEditForm = (vehicle: IVehicle) => {
@@ -124,6 +146,7 @@ export default function VehiclesPage() {
       plateNumber: vehicle.plateNumber,
       capacity: vehicle.capacity,
       amenities: vehicle.amenities.join(', '),
+      carType: vehicle.carType,
     });
     setIsDialogOpen(true);
   };
@@ -181,7 +204,6 @@ export default function VehiclesPage() {
       toast.error(error.message);
     }
   };
-
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
@@ -191,7 +213,6 @@ export default function VehiclesPage() {
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <div className="space-y-6">
-        {' '}
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Bus className="h-7 w-7 text-blue-600" />
@@ -199,7 +220,6 @@ export default function VehiclesPage() {
               Manage Vehicles
             </h1>
           </div>
-
           <Button
             onClick={openNewForm}
             className="bg-blue-600 hover:bg-blue-700"
@@ -225,36 +245,33 @@ export default function VehiclesPage() {
               <TableHeader>
                 <TableRow className="bg-slate-50 hover:bg-slate-50">
                   <TableHead>Name</TableHead>
-                  <TableHead className="w-[150px]">Plate Number</TableHead>{' '}
-                  <TableHead className="w-[100px]">Capacity</TableHead>{' '}
+                  <TableHead>Plate Number</TableHead>
+                  <TableHead>Capacity</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead>Amenities</TableHead>
-                  <TableHead className="text-right w-[80px]">
-                    Actions
-                  </TableHead>{' '}
+                  <TableHead className="text-right w-[80px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    {' '}
                     <TableCell
-                      colSpan={5}
+                      colSpan={6}
                       className="h-48 text-center text-slate-500"
                     >
                       {' '}
                       Loading vehicles...{' '}
-                    </TableCell>{' '}
+                    </TableCell>
                   </TableRow>
                 ) : vehicles.length === 0 ? (
                   <TableRow>
-                    {' '}
                     <TableCell
-                      colSpan={5}
+                      colSpan={6}
                       className="h-48 text-center text-slate-500"
                     >
                       {' '}
-                      No vehicles found. Add one using the button above.{' '}
-                    </TableCell>{' '}
+                      No vehicles found.{' '}
+                    </TableCell>
                   </TableRow>
                 ) : (
                   vehicles.map((vehicle) => (
@@ -262,18 +279,19 @@ export default function VehiclesPage() {
                       key={vehicle._id as string}
                       className="hover:bg-slate-50/50 text-sm"
                     >
-                      {' '}
                       <TableCell className="font-medium text-slate-900">
                         {vehicle.name}
                       </TableCell>
                       <TableCell className="font-mono text-xs text-slate-600">
                         {vehicle.plateNumber}
-                      </TableCell>{' '}
+                      </TableCell>
                       <TableCell className="text-slate-600 text-center">
                         {vehicle.capacity}
+                      </TableCell>
+                      <TableCell className="text-slate-600 capitalize">
+                        {vehicle.carType}
                       </TableCell>{' '}
                       <TableCell className="text-slate-600 text-xs">
-                        {' '}
                         {vehicle.amenities && vehicle.amenities.length > 0 ? (
                           <div className="flex flex-wrap gap-1">
                             {vehicle.amenities.map((a) => (
@@ -297,24 +315,21 @@ export default function VehiclesPage() {
                               variant="ghost"
                               className="h-8 w-8 p-0 text-slate-500 hover:text-slate-900"
                             >
-                              {' '}
-                              <MoreHorizontal className="h-4 w-4" />{' '}
+                              <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
                               onClick={() => openEditForm(vehicle)}
                             >
-                              {' '}
-                              <Edit className="mr-2 h-4 w-4" /> Edit{' '}
+                              <Edit className="mr-2 h-4 w-4" /> Edit
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-red-600 focus:text-red-700"
                               onClick={() => onDelete(vehicle._id as string)}
                             >
-                              {' '}
-                              <Trash2 className="mr-2 h-4 w-4" /> Delete{' '}
+                              <Trash2 className="mr-2 h-4 w-4" /> Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -323,68 +338,60 @@ export default function VehiclesPage() {
                   ))
                 )}
               </TableBody>
-
-              {totalPages > 1 || vehicles.length > 0 ? (
-                <TableFooter>
-                  <TableRow>
-                    <TableCell colSpan={5}>
-                      <div className="flex items-center justify-between px-2">
-                        <div className="text-sm text-muted-foreground">
-                          {' '}
-                          Total Vehicles: {totalCount}{' '}
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm mr-4">
-                            {' '}
-                            Page {currentPage} of {totalPages}{' '}
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePageChange(1)}
-                            disabled={currentPage === 1 || isLoading}
-                          >
-                            {' '}
-                            <ChevronsLeft className="h-4 w-4" />{' '}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 1 || isLoading}
-                          >
-                            {' '}
-                            <ChevronLeft className="h-4 w-4" />{' '}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages || isLoading}
-                          >
-                            {' '}
-                            <ChevronRight className="h-4 w-4" />{' '}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePageChange(totalPages)}
-                            disabled={currentPage === totalPages || isLoading}
-                          >
-                            {' '}
-                            <ChevronsRight className="h-4 w-4" />{' '}
-                          </Button>
-                        </div>
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={6}>
+                    <div className="flex items-center justify-between px-2">
+                      <div className="text-sm text-muted-foreground">
+                        {' '}
+                        Total Vehicles: {totalCount}{' '}
                       </div>
-                    </TableCell>
-                  </TableRow>
-                </TableFooter>
-              ) : null}
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm mr-4">
+                          {' '}
+                          Page {currentPage} of {totalPages}{' '}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePageChange(1)}
+                          disabled={currentPage === 1 || isLoading}
+                        >
+                          <ChevronsLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1 || isLoading}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages || isLoading}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePageChange(totalPages)}
+                          disabled={currentPage === totalPages || isLoading}
+                        >
+                          <ChevronsRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
             </Table>
           </CardContent>
         </Card>
         <DialogContent className="sm:max-w-md">
-          {' '}
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl">
               {editingVehicle ? (
@@ -422,30 +429,64 @@ export default function VehiclesPage() {
                     </FormItem>
                   )}
                 />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    //@ts-expect-error ???
+                    control={form.control}
+                    name="plateNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Plate Number *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., ABC-123-XYZ" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    //@ts-expect-error ???
+                    control={form.control}
+                    name="capacity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Capacity (Seats) *</FormLabel>
+                        <FormControl>
+                          <Input type="number" min="1" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <FormField
                   //@ts-expect-error ???
                   control={form.control}
-                  name="plateNumber"
+                  name="carType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Plate Number *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., ABC-123-XYZ" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  //@ts-expect-error ???
-                  control={form.control}
-                  name="capacity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Capacity (Seats) *</FormLabel>
-                      <FormControl>
-                        <Input type="number" min="1" {...field} />
-                      </FormControl>
+                      <FormLabel>Car Type *</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a car type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {carTypes.map((type) => (
+                            <SelectItem
+                              key={type}
+                              value={type}
+                              className="capitalize"
+                            >
+                              {type}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -469,14 +510,12 @@ export default function VehiclesPage() {
                     </FormItem>
                   )}
                 />
-
                 <DialogFooter className="pt-5">
                   <DialogClose asChild>
                     <Button type="button" variant="outline">
                       Cancel
                     </Button>
                   </DialogClose>
-
                   <Button
                     type="submit"
                     className="bg-blue-600 hover:bg-blue-700"
@@ -488,7 +527,7 @@ export default function VehiclesPage() {
             </Form>
           </div>
         </DialogContent>
-      </div>{' '}
+      </div>
     </Dialog>
   );
 }
