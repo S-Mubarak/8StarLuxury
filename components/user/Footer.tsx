@@ -21,13 +21,13 @@ export default function Footer() {
                 <Image
                   src="/applogo-white.png"
                   alt="8 Star Luxury Logo"
-                  width={100}
-                  height={100}
+                  width={200}
+                  height={200}
                 />
               </div>
-              <span className="font-bold text-xl text-white">
+              {/*    <span className="font-bold text-xl text-white">
                 8 Star Luxury
-              </span>
+              </span> */}
             </div>
             <p className="text-sm text-slate-400">
               Redefining travel with comfort, class, and care. Experience
@@ -100,7 +100,7 @@ export default function Footer() {
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-2">
                 <Phone className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span>+234 123 456 7890</span>
+                <span>+234 902 725 4731</span>
               </li>
               <li className="flex items-start gap-2">
                 <Mail className="h-4 w-4 mt-0.5 flex-shrink-0" />
@@ -116,7 +116,7 @@ export default function Footer() {
 
         <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-slate-400">
-            © {currentYear} 8 Star Luxury Travels. All rights reserved.
+            © {currentYear} 8 Star Luxury. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             <Link href="#" className="hover:text-blue-400 transition-colors">

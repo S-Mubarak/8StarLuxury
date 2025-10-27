@@ -32,3 +32,5 @@ export default function Hero() {
     </section>
   );
 }
+
+/* #96351e #dbb98f */
