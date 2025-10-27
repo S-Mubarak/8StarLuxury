@@ -23,13 +23,13 @@ export default function Header() {
           {' '}
           <Link
             href="/"
-            className="transition-colors hover:text-foreground/80 text-foreground/60"
+            className="transition-colors hover:text-foreground/80 text-foreground/60 font-bold"
           >
             Home
           </Link>
           <Link
             href="/bookings"
-            className="transition-colors hover:text-foreground/80 text-foreground/60"
+            className="transition-colors hover:text-foreground/80 text-foreground/60 font-bold"
           >
             Find Booking
           </Link>
