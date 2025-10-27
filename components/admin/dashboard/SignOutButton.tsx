@@ -5,7 +5,7 @@ export default function SignOutButton() {
   return (
     <span
       className="cursor-pointer w-full text-left"
-      onClick={() => signOut({ callbackUrl: '/admin/login' })}
+      onClick={() => signOut({ callbackUrl: '/admin' })}
     >
       Sign Out
     </span>
