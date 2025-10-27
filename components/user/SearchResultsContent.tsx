@@ -168,7 +168,7 @@ export default function SearchResultsContent() {
                   modifiers={{ available: availableDates }}
                   modifiersClassNames={{
                     available:
-                      'bg-blue-600 text-white hover:bg-blue-700 focus:bg-blue-700 rounded-md',
+                      'bg-[#96351e] text-white hover:bg-[#dbb98f] focus:bg-[#dbb98f] rounded-md',
                   }}
                   disabled={(date) => {
                     return (
@@ -316,7 +316,7 @@ export default function SearchResultsContent() {
                             </p>
                           </div>
                           <Button
-                            className="w-full bg-blue-600 hover:bg-blue-700 mt-4"
+                            className="w-full bg-[#96351e] hover:bg-[#dbb98f] mt-4"
                             onClick={() => handleBookNow(trip._id)}
                           >
                             Book Now <ArrowRight className="h-4 w-4 ml-2" />

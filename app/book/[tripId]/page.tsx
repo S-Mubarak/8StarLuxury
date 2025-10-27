@@ -833,7 +833,7 @@ export default function BookPage() {
           <CardFooter className="border-t pt-5">
             <Button
               type="button"
-              className="w-full bg-blue-600 hover:bg-blue-700 h-11 text-base"
+              className="w-full bg-[#96351e] hover:bg-[#dbb98f] h-11 text-base"
               size="lg"
               onClick={form.handleSubmit(onSubmit)}
               disabled={form.formState.isSubmitting || isLoading}

@@ -3,6 +3,9 @@ import dbConnect from '@/lib/dbConnect';
 import Trip from '@/models/Trip';
 import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
+import '@/models/Route';
+import '@/models/Vehicle';
+import '@/models/Driver';
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -63,7 +66,8 @@ export async function GET(request: Request) {
       .populate('driver', 'firstName lastName')
       .sort({ departureTime: -1 })
       .limit(limit)
-      .skip(skip);
+      .skip(skip)
+      .lean();
 
     const totalCount = await Trip.countDocuments();
 

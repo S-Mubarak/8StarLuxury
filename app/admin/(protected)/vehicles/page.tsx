@@ -222,7 +222,7 @@ export default function VehiclesPage() {
           </div>
           <Button
             onClick={openNewForm}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-[#96351e] hover:bg-[#dbb98f]"
           >
             <PlusCircle className="mr-2 h-4 w-4" /> Add New Vehicle
           </Button>
@@ -518,7 +518,7 @@ export default function VehiclesPage() {
                   </DialogClose>
                   <Button
                     type="submit"
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-[#96351e] hover:bg-[#dbb98f]"
                   >
                     Save Vehicle
                   </Button>
