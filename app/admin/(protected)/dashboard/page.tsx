@@ -26,7 +26,6 @@ export default async function AdminDashboard() {
             Welcome back, {user?.name || user?.email}!
           </p>
         </div>
-        <SignOutButton />
       </div>
 
       <div>
