@@ -72,12 +72,25 @@ import {
 } from 'lucide-react';
 
 const imageOptions = [
-  { value: '/images/routes/lagos-abuja.jpg', label: 'Lagos-Abuja' },
-  { value: '/images/routes/ph-enugu.jpg', label: 'PH-Enugu' },
-  { value: '/images/routes/kano-kaduna.jpg', label: 'Kano-Kaduna' },
-  { value: '/images/routes/default.jpg', label: 'Default' },
+  { value: '/abuja.jpg', label: 'Abuja' },
+  {
+    value: '/airplane-interior-luxury.jpg',
+    label: 'Airplane Interior',
+  },
+  {
+    value: '/luxury-mountain-road-aerial-view.jpg',
+    label: 'Mountain Road (Aerial)',
+  },
+  { value: '/jalingo.jpg', label: 'Jalingo' },
+  {
+    value: '/luxury-suv-mountain-road.jpg',
+    label: 'Mountain Road (SUV)',
+  },
+  {
+    value: '/mambilla-plateau-scenic-view.jpg',
+    label: 'Mambilla Plateau',
+  },
 ];
-
 const segmentSchema = z.object({
   origin: z.string().min(2, 'Origin is required.'),
   destination: z.string().min(2, 'Destination is required.'),
@@ -243,7 +256,7 @@ export default function RoutesPage() {
 
           <Button
             onClick={openNewForm}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-[#96351e] hover:bg-[#dbb98f]"
           >
             <PlusCircle className="mr-2 h-4 w-4" /> Add New Route
           </Button>
@@ -679,7 +692,7 @@ export default function RoutesPage() {
 
                   <Button
                     type="submit"
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-[#96351e] hover:bg-[#dbb98f]"
                   >
                     Save Route
                   </Button>

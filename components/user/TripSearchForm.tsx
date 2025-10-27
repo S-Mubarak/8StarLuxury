@@ -80,7 +80,6 @@ export default function TripSearchForm() {
     <Card className="w-full max-w-2xl shadow-2xl border-slate-200 bg-white">
       <CardContent className="p-8">
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Header */}
           <div className="space-y-2">
             <h3 className="text-2xl font-bold text-slate-900">
               Plan Your Luxury Escape
@@ -90,9 +89,7 @@ export default function TripSearchForm() {
             </p>
           </div>
 
-          {/* Form Fields Container */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* --- Origin Select --- */}
             <div className="space-y-3">
               <Label
                 htmlFor="source"
@@ -132,7 +129,6 @@ export default function TripSearchForm() {
               </Select>
             </div>
 
-            {/* --- Destination Select --- */}
             <div className="space-y-3">
               <Label
                 htmlFor="destination"
@@ -173,17 +169,15 @@ export default function TripSearchForm() {
             </div>
           </div>
 
-          {/* Search Button */}
           <Button
             type="submit"
-            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+            className="w-full h-12 bg-[#96351e] hover:bg-[#dbb98f] text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
             disabled={!selectedOrigin || !selectedDestination}
           >
             <Search className="h-5 w-5" />
             Explore Luxury Routes
           </Button>
 
-          {/* Divider with text */}
           <div className="flex items-center gap-4">
             <div className="flex-1 h-px bg-slate-200"></div>
             <span className="text-xs text-slate-400 font-medium">
@@ -192,7 +186,6 @@ export default function TripSearchForm() {
             <div className="flex-1 h-px bg-slate-200"></div>
           </div>
 
-          {/* Info text */}
           <p className="text-center text-xs text-slate-500">
             Discover curated luxury travel experiences tailored to your
             preferences

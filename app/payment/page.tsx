@@ -182,7 +182,7 @@ export default function PaymentPage() {
         </CardContent>
         <CardFooter className="flex flex-col items-center gap-3 bg-slate-50/70 p-6 border-t rounded-b-lg">
           <Button
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-base h-12 rounded-md shadow transition duration-150 ease-in-out"
+            className="w-full bg-[#96351e] hover:bg-[#dbb98f] text-white font-semibold text-base h-12 rounded-md shadow transition duration-150 ease-in-out"
             size="lg"
             onClick={handlePayment}
             disabled={isLoading || !bookingData || !!error}

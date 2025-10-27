@@ -161,7 +161,7 @@ export default function VerifyPaymentContent() {
 
         <CardFooter className="bg-slate-50/70 p-4 border-t">
           {result.status === 'success' && (
-            <Button asChild className="w-full bg-blue-600 hover:bg-blue-700">
+            <Button asChild className="w-full bg-[#96351e] hover:bg-[#dbb98f]">
               <Link href="/bookings">View My Bookings</Link>
             </Button>
           )}

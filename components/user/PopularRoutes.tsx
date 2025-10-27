@@ -73,7 +73,7 @@ export default function PopularRoutes({ featuredRoutes }: Props) {
                         </div>
                         <Button
                           asChild
-                          className="bg-slate-900 hover:bg-slate-800 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="bg-[#96351e] hover:bg-[#dbb98f] opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <span>
                             Book Now{' '}

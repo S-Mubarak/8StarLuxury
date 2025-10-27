@@ -286,7 +286,7 @@ export default function TripsPage() {
 
           <Button
             onClick={openNewForm}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-[#96351e] hover:bg-[#dbb98f]"
           >
             <PlusCircle className="mr-2 h-4 w-4" /> Schedule New Trip
           </Button>
@@ -687,7 +687,7 @@ export default function TripsPage() {
 
                   <Button
                     type="submit"
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-[#96351e] hover:bg-[#dbb98f]"
                   >
                     Save Trip
                   </Button>

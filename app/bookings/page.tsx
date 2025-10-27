@@ -139,7 +139,7 @@ export default function FindBookingPage() {
               />
               <Button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 h-11 text-base"
+                className="w-full bg-[#96351e] hover:bg-[#dbb98f] h-11 text-base"
                 disabled={isLoading}
               >
                 {isLoading ? (

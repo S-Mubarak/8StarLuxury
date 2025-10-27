@@ -224,7 +224,7 @@ export default function AddOnsPage() {
 
           <Button
             onClick={openNewForm}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-[#96351e] hover:bg-[#dbb98f]"
           >
             <PlusCircle className="mr-2 h-4 w-4" /> Add New Add-On
           </Button>
@@ -539,7 +539,7 @@ export default function AddOnsPage() {
 
                   <Button
                     type="submit"
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-[#96351e] hover:bg-[#dbb98f]"
                   >
                     Save Add-On
                   </Button>

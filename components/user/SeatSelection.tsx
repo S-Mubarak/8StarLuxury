@@ -200,7 +200,7 @@ export default function SeatSelector({
                           className={cn(
                             'w-12 h-12 rounded-lg font-bold text-xs transition-all duration-200 flex items-center justify-center relative',
                             status === 'available' &&
-                              'bg-blue-500 text-white hover:bg-blue-600 cursor-pointer shadow-md hover:shadow-lg hover:scale-105',
+                              'bg-blue-500 text-white hover:bg-[#96351e] cursor-pointer shadow-md hover:shadow-lg hover:scale-105',
                             status === 'selected' &&
                               'bg-green-500 text-white ring-2 ring-green-300 scale-105 shadow-lg',
                             status === 'booked' &&
@@ -245,7 +245,7 @@ export default function SeatSelector({
                           className={cn(
                             'w-12 h-12 rounded-lg font-bold text-xs transition-all duration-200 flex items-center justify-center',
                             status === 'available' &&
-                              'bg-blue-500 text-white hover:bg-blue-600 cursor-pointer shadow-md hover:shadow-lg hover:scale-105',
+                              'bg-blue-500 text-white hover:bg-[#96351e] cursor-pointer shadow-md hover:shadow-lg hover:scale-105',
                             status === 'selected' &&
                               'bg-green-500 text-white ring-2 ring-green-300 scale-105 shadow-lg',
                             status === 'booked' &&

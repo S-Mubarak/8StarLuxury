@@ -33,7 +33,7 @@ export default function FeaturedRouteCard({ route }: Props) {
             <p className="text-sm text-muted-foreground">
               {start} → {end}
             </p>
-            <div className="text-sm font-medium text-blue-600 mt-2 flex items-center group-hover:underline">
+            <div className="text-sm  font-medium text-blue-600 mt-2 flex items-center group-hover:underline bg-[#96351e] hover:bg-[#dbb98f]">
               Book Now <ArrowRight className="ml-1 h-4 w-4" />
             </div>
           </div>

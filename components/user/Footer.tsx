@@ -1,13 +1,13 @@
-import Link from 'next/link';
 import {
   Facebook,
-  Twitter,
   Instagram,
   Mail,
-  Phone,
   MapPin,
-  Car,
+  Phone,
+  Twitter,
 } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -17,9 +17,13 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              {/* Logo Placeholder - You can replace this with an actual logo component/image */}
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center">
-                <Car className="h-6 w-6 text-white" />
+              <div className=" rounded-lg  flex items-center justify-center">
+                <Image
+                  src="/applogo-white.png"
+                  alt="8 Star Luxury Logo"
+                  width={100}
+                  height={100}
+                />
               </div>
               <span className="font-bold text-xl text-white">
                 8 Star Luxury
@@ -31,7 +35,6 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Quick Links */}
           <div>
             <h3 className="font-semibold text-white mb-4">Quick Links</h3>
             <ul className="space-y-2 text-sm">
@@ -59,9 +62,6 @@ export default function Footer() {
                   My Booking
                 </Link>
               </li>
-              {/* Add About/Contact links if those pages exist */}
-              {/* <li><Link href="/about" className="hover:text-blue-400 transition-colors">About Us</Link></li> */}
-              {/* <li><Link href="/contact" className="hover:text-blue-400 transition-colors">Contact</Link></li> */}
             </ul>
           </div>
 
@@ -84,6 +84,14 @@ export default function Footer() {
                   Privacy Policy
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/cancellation"
+                  className="hover:text-blue-400 transition-colors"
+                >
+                  Cancellation Policy
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -92,15 +100,15 @@ export default function Footer() {
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-2">
                 <Phone className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span>+234 123 456 7890</span> {/* Update phone */}
+                <span>+234 123 456 7890</span>
               </li>
               <li className="flex items-start gap-2">
                 <Mail className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span>support@8starluxury.com</span> {/* Update email */}
+                <span>support@8starluxury.com</span>
               </li>
               <li className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span>Abuja, Nigeria</span> {/* Update address */}
+                <span>Abuja, Nigeria</span>
               </li>
             </ul>
           </div>
@@ -111,7 +119,6 @@ export default function Footer() {
             © {currentYear} 8 Star Luxury Travels. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
-            {/* Update social media links */}
             <Link href="#" className="hover:text-blue-400 transition-colors">
               <Facebook className="h-5 w-5" />
             </Link>
